@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "905549705126",
+    "project_id": "medicine-stock-managemen-aab34",
+    "storage_bucket": "medicine-stock-managemen-aab34.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:905549705126:android:a78be3eb25e7329d46e967",
+        "android_client_info": {
+          "package_name": "com.example.first_flutter_proj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcmr24JXPOBQRL0syoTOz-Y8Bcw4ftFcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:905549705126:android:b2d06984a97dc00b46e967",
+        "android_client_info": {
+          "package_name": "com.example.pharmacy_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcmr24JXPOBQRL0syoTOz-Y8Bcw4ftFcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
