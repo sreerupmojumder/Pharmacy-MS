@@ -1,7 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:pharmacy_app/screens/admin_login_screen.dart';
 import 'package:pharmacy_app/screens/employee_management_screen.dart';
 
 // পূর্বের স্ক্রিনগুলো ইম্পোর্ট করা হলো
@@ -71,7 +72,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               title,
                               style: TextStyle(
                                 color: Colors.grey[550],
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -81,7 +82,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               value,
                               style: TextStyle(
                                 color: themeColor,
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -99,7 +100,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         child: Icon(
                           icon,
                           color: themeColor.withOpacity(0.8),
-                          size: 26,
+                          size: 14,
                         ),
                       ),
                     ],
@@ -141,14 +142,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   color: color.withOpacity(0.08),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: 18),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 label,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -160,11 +161,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  
+    Future<void> _logout(BuildContext context) async {
+    try {
+      // Firebase থেকে ইউজারকে সাইন আউট করা
+      await FirebaseAuth.instance.signOut();
+
+      // সব আগের রুট (routes) ডিলিট করে লগইন স্ক্রিনে পাঠানো
+      // যাতে ইউজার ব্যাক বাটনে ক্লিক করে আবার ড্যাশবোর্ডে ফিরে আসতে না পারে
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminLoginScreen()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error logging out: $e")));
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF005088);
+    const primaryColor = Color.fromARGB(255, 190, 139, 26);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -176,21 +194,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ),
         title: Text(
-          'Pharmacy MS',
+          'Admin',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: primaryColor,
         elevation: 1,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {},
-            tooltip: 'Profile',
-          ),
-          IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () => setState(() {}),
             tooltip: 'Refresh Dashboard',
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_outlined, color: Colors.white),
+            onPressed: () => _logout(context),
+            tooltip: 'Logout',
           ),
         ],
       ),
@@ -310,11 +328,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Card(
-                    color: Colors.brown,
+                    color: Theme.of(context).secondaryHeaderColor,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                        horizontal: 10,
+                        vertical: 4,
                       ),
                       child: TextButton(
                         onPressed: () {
@@ -327,7 +345,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         },
                         child: Text(
                           'Employee',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          style: TextStyle(fontSize: 14, color: Colors.black),
                         ),
                       ),
                     ),
