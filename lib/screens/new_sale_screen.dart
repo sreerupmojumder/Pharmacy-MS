@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -408,6 +409,20 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
             ? timestampStr.substring(timestampStr.length - 6)
             : timestampStr;
 
+        String salesPersonName = "Unknown";
+        final User? currentUser = FirebaseAuth.instance.currentUser;
+
+        if (currentUser != null) {
+          DocumentSnapshot userDoc = await FirebaseFirestore.instance
+              .collection('employees')
+              .doc(currentUser.uid)
+              .get();
+
+          if (userDoc.exists) {
+            salesPersonName = userDoc['name'] ?? "Unknown";
+          }
+        }
+
         // ইনভয়েস ডাটা ট্রানজেকশনে রাইট করা হচ্ছে
         transaction.set(salesRef, {
           'invoiceNo': 'INV-$generatedInvoiceSuffix',
@@ -424,6 +439,9 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
           'dueAmount': _isBakiSale ? _dueAmount : 0.0,
           'paymentStatus': paymentStatus,
           'createdAt': Timestamp.now(),
+
+          'soldByUserId': currentUser?.uid ?? 'Unknown',
+          'soldByName': salesPersonName,
         });
 
         debugPrint('Checkout: writes mapped to transaction pipeline.');

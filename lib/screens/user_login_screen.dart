@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pharmacy_app/screens/admin_dashboard_screen.dart';
 import 'package:pharmacy_app/screens/admin_login_screen.dart';
-import 'package:pharmacy_app/screens/dataentry/dataentry_dashboard_screen.dart';
-import 'package:pharmacy_app/screens/manager/manager_dashboard_screen.dart';
-import 'package:pharmacy_app/screens/sales/sales_dashboard_screen.dart';
+import 'package:pharmacy_app/screens/employee/dataentry/dataentry_dashboard_screen.dart';
+import 'package:pharmacy_app/screens/employee/manager/manager_dashboard_screen.dart';
+import 'package:pharmacy_app/screens/employee/sales/sales_dashboard_screen.dart';
 
 class UserLoginScreen extends StatefulWidget {
   const UserLoginScreen({super.key});

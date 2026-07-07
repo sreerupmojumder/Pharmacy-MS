@@ -14,9 +14,10 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   String _salesSearchQuery = '';
   String _dueSearchQuery = '';
   String _statusFilter = 'All'; // 'All', 'Paid', 'Due', 'Partial'
-  
+
   // ডাইনামিক ডেট ফিল্টার (ডিফল্ট পারফরম্যান্সের জন্য 'This Month' রাখা হলো)
-  String _dateFilter = 'This Month'; // 'Today', 'This Month', 'This Year', 'All Time'
+  String _dateFilter =
+      'This Month'; // 'Today', 'This Month', 'This Year', 'All Time'
 
   final TextEditingController _salesSearchController = TextEditingController();
   final TextEditingController _dueSearchController = TextEditingController();
@@ -40,13 +41,22 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     // ফায়ারস্টোর লেভেলেই কোয়েরি ফিল্টার করে ডাটা কম ডাউনলোড করা হচ্ছে (পারফরম্যান্স বুস্ট)
     if (_dateFilter == 'Today') {
       final DateTime startOfToday = DateTime(now.year, now.month, now.day);
-      query = query.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfToday));
+      query = query.where(
+        'createdAt',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfToday),
+      );
     } else if (_dateFilter == 'This Month') {
       final DateTime startOfThisMonth = DateTime(now.year, now.month, 1);
-      query = query.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfThisMonth));
+      query = query.where(
+        'createdAt',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfThisMonth),
+      );
     } else if (_dateFilter == 'This Year') {
       final DateTime startOfThisYear = DateTime(now.year, 1, 1);
-      query = query.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfThisYear));
+      query = query.where(
+        'createdAt',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfThisYear),
+      );
     }
     // 'All Time' হলে কোনো ফিল্টার ছাড়া সব ডাটা লোড হবে (প্রয়োজন সাপেক্ষে)
 
@@ -88,18 +98,33 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Column(
+            crossAxisAlignment: .start,
             children: [
-              Text(
-                'Memo: ${invoice['invoiceNo']}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: primaryColor),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Memo: ${invoice['invoiceNo']}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: primaryColor,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              )
+              Text(
+                'Sold By: ${invoice['soldByName']}',
+                style: TextStyle(fontSize: 12),
+              ),
             ],
           ),
           content: SizedBox(
@@ -108,20 +133,34 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Customer: ${invoice['customerName'] ?? 'Walking Customer'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  if (invoice['customerPhone'] != null && invoice['customerPhone'].toString().isNotEmpty)
+                  Text(
+                    'Customer: ${invoice['customerName'] ?? 'Walking Customer'}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  if (invoice['customerPhone'] != null &&
+                      invoice['customerPhone'].toString().isNotEmpty)
                     Text('Phone: ${invoice['customerPhone']}'),
-                  Text('Date: ${_formatDate(invoice['createdAt'] as Timestamp?)}'),
+                  Text(
+                    'Date: ${_formatDate(invoice['createdAt'] as Timestamp?)}',
+                  ),
                   const Divider(height: 24),
-                  const Text('Purchased Items:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  const Text(
+                    'Purchased Items:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  
+
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: items.length,
                     itemBuilder: (context, index) {
-                      final item = Map<String, dynamic>.from(items[index] as Map);
+                      final item = Map<String, dynamic>.from(
+                        items[index] as Map,
+                      );
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
@@ -133,19 +172,24 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                                 style: const TextStyle(fontSize: 14),
                               ),
                             ),
-                            Text('৳${(item['subtotal'] as num? ?? 0).toStringAsFixed(1)}')
+
+                            Text(
+                              '৳${(item['subtotal'] as num? ?? 0).toStringAsFixed(1)}',
+                            ),
                           ],
                         ),
                       );
                     },
                   ),
                   const Divider(height: 24),
-                  
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Subtotal:'),
-                      Text('৳${(invoice['subtotal'] as num? ?? 0.0).toStringAsFixed(2)}'),
+                      Text(
+                        '৳${(invoice['subtotal'] as num? ?? 0.0).toStringAsFixed(2)}',
+                      ),
                     ],
                   ),
                   if ((invoice['discount'] as num? ?? 0) > 0)
@@ -153,14 +197,26 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Discount:'),
-                        Text('-৳${(invoice['discount'] as num? ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
+                        Text(
+                          '-৳${(invoice['discount'] as num? ?? 0.0).toStringAsFixed(2)}',
+                          style: const TextStyle(color: Colors.red),
+                        ),
                       ],
                     ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Bill:', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('৳${(invoice['total'] as num? ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: primaryColor)),
+                      const Text(
+                        'Total Bill:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '৳${(invoice['total'] as num? ?? 0.0).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
                     ],
                   ),
                   const Divider(),
@@ -168,14 +224,32 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Paid Amount:'),
-                      Text('৳${(invoice['paidAmount'] as num? ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                      Text(
+                        '৳${(invoice['paidAmount'] as num? ?? 0.0).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Due (বাকি):', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                      Text('৳${(invoice['dueAmount'] as num? ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Due (বাকি):',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '৳${(invoice['dueAmount'] as num? ?? 0.0).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -188,10 +262,12 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   }
 
   void _showDueCollectionDialog(Map<String, dynamic> invoice, String docId) {
-    final double outstandingDue = (invoice['dueAmount'] as num? ?? 0.0).toDouble();
-    final double previousPaid = (invoice['paidAmount'] as num? ?? 0.0).toDouble();
+    final double outstandingDue = (invoice['dueAmount'] as num? ?? 0.0)
+        .toDouble();
+    final double previousPaid = (invoice['paidAmount'] as num? ?? 0.0)
+        .toDouble();
     final double totalBill = (invoice['total'] as num? ?? 0.0).toDouble();
-    
+
     final TextEditingController collectionController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     bool isProcessing = false;
@@ -202,12 +278,17 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: const Row(
                 children: [
                   Icon(Icons.payment, color: Colors.teal),
                   SizedBox(width: 8),
-                  Text('Collect Due (বাকি আদায়)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Collect Due (বাকি আদায়)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               content: Form(
@@ -216,7 +297,10 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Customer: ${invoice['customerName']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Customer: ${invoice['customerName']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text('Invoice: ${invoice['invoiceNo']}'),
                     const Divider(),
                     const SizedBox(height: 8),
@@ -231,14 +315,26 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Paid Till Now:'),
-                        Text('৳${previousPaid.toStringAsFixed(2)}', style: const TextStyle(color: Colors.green)),
+                        Text(
+                          '৳${previousPaid.toStringAsFixed(2)}',
+                          style: const TextStyle(color: Colors.green),
+                        ),
                       ],
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Outstanding Due:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('৳${outstandingDue.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                        const Text(
+                          'Outstanding Due:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '৳${outstandingDue.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -249,13 +345,18 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       decoration: InputDecoration(
                         labelText: 'Collect Amount (৳) *',
                         hintText: 'e.g. ${outstandingDue.toStringAsFixed(0)}',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Enter collection amount';
+                        if (value == null || value.isEmpty)
+                          return 'Enter collection amount';
                         final double? amt = double.tryParse(value);
-                        if (amt == null || amt <= 0) return 'Enter a valid positive amount';
-                        if (amt > outstandingDue) return 'Cannot collect more than due amount!';
+                        if (amt == null || amt <= 0)
+                          return 'Enter a valid positive amount';
+                        if (amt > outstandingDue)
+                          return 'Cannot collect more than due amount!';
                         return null;
                       },
                     ),
@@ -264,14 +365,21 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: isProcessing ? null : () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  onPressed: isProcessing
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: isProcessing
                       ? null
@@ -282,35 +390,47 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                             });
 
                             try {
-                              final double collectedAmt = double.parse(collectionController.text.trim());
-                              final double newPaid = previousPaid + collectedAmt;
-                              final double newDue = outstandingDue - collectedAmt;
-                              
+                              final double collectedAmt = double.parse(
+                                collectionController.text.trim(),
+                              );
+                              final double newPaid =
+                                  previousPaid + collectedAmt;
+                              final double newDue =
+                                  outstandingDue - collectedAmt;
+
                               String newStatus = 'Paid';
                               if (newDue > 0) {
                                 newStatus = 'Partial';
                               }
 
                               // ফায়ারস্টোর আপডেট করা হচ্ছে
-                              await FirebaseFirestore.instance.collection('sales').doc(docId).update({
-                                'paidAmount': newPaid,
-                                'dueAmount': newDue,
-                                'paymentStatus': newStatus,
-                                'lastDueCollectedAt': Timestamp.now(),
-                              });
+                              await FirebaseFirestore.instance
+                                  .collection('sales')
+                                  .doc(docId)
+                                  .update({
+                                    'paidAmount': newPaid,
+                                    'dueAmount': newDue,
+                                    'paymentStatus': newStatus,
+                                    'lastDueCollectedAt': Timestamp.now(),
+                                  });
 
                               if (context.mounted) {
                                 Navigator.pop(dialogContext);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('৳${collectedAmt.toStringAsFixed(0)} collected successfully for ${invoice['invoiceNo']}!'),
+                                    content: Text(
+                                      '৳${collectedAmt.toStringAsFixed(0)} collected successfully for ${invoice['invoiceNo']}!',
+                                    ),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
                               }
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Error updating record: $e'), backgroundColor: Colors.red),
+                                SnackBar(
+                                  content: Text('Error updating record: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
                               );
                             } finally {
                               setDialogState(() {
@@ -320,8 +440,18 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           }
                         },
                   child: isProcessing
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Confirm Payment', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Confirm Payment',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                 ),
               ],
             );
@@ -352,16 +482,25 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             indicatorColor: Colors.tealAccent,
             indicatorWeight: 3,
             tabs: [
-              Tab(icon: Icon(Icons.receipt_long), text: 'Sales Report (বিক্রয় রিপোর্ট)'),
-              Tab(icon: Icon(Icons.analytics_outlined), text: 'Due Tracker (বাকি খাতা)'),
+              Tab(
+                icon: Icon(Icons.receipt_long),
+                text: 'Sales Report (বিক্রয় রিপোর্ট)',
+              ),
+              Tab(
+                icon: Icon(Icons.analytics_outlined),
+                text: 'Due Tracker (বাকি খাতা)',
+              ),
             ],
           ),
         ),
         body: StreamBuilder<QuerySnapshot>(
           stream: _salesStream,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator(color: primaryColor));
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(color: primaryColor),
+              );
             }
             if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -383,17 +522,27 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               totalReceived += (data['paidAmount'] as num? ?? 0.0).toDouble();
               totalDue += (data['dueAmount'] as num? ?? 0.0).toDouble();
               totalDiscount += (data['discount'] as num? ?? 0.0).toDouble();
-              
+
               // ওষুধ বিক্রির মোট পিস সংখ্যা হিসাব করা হচ্ছে
               final List<dynamic> items = data['items'] as List<dynamic>? ?? [];
               for (var item in items) {
-                totalMedicineItemsSold += (item['quantity'] as num? ?? 0).toInt();
+                totalMedicineItemsSold += (item['quantity'] as num? ?? 0)
+                    .toInt();
               }
             }
 
             return TabBarView(
               children: [
-                _buildSalesReportTab(docs, totalSales, totalReceived, totalDue, totalDiscount, totalInvoicesCount, totalMedicineItemsSold, primaryColor),
+                _buildSalesReportTab(
+                  docs,
+                  totalSales,
+                  totalReceived,
+                  totalDue,
+                  totalDiscount,
+                  totalInvoicesCount,
+                  totalMedicineItemsSold,
+                  primaryColor,
+                ),
                 _buildDueTrackerTab(docs, totalDue, primaryColor),
               ],
             );
@@ -404,14 +553,14 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   }
 
   Widget _buildSalesReportTab(
-    List<QueryDocumentSnapshot> docs, 
-    double totalSales, 
-    double totalReceived, 
-    double totalDue, 
-    double totalDiscount, 
+    List<QueryDocumentSnapshot> docs,
+    double totalSales,
+    double totalReceived,
+    double totalDue,
+    double totalDiscount,
     int totalInvoicesCount,
     int totalMedicineItemsSold,
-    Color primaryColor
+    Color primaryColor,
   ) {
     // সার্চ এবং ডাইনামিক ফিল্টার অ্যাপ্লাই করা হচ্ছে
     final filteredSales = docs.where((doc) {
@@ -421,10 +570,11 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       final phone = (data['customerPhone'] ?? '').toString().toLowerCase();
       final status = (data['paymentStatus'] ?? '').toString().toLowerCase();
 
-      final matchesSearch = invNo.contains(_salesSearchQuery) || 
-                            name.contains(_salesSearchQuery) || 
-                            phone.contains(_salesSearchQuery);
-      
+      final matchesSearch =
+          invNo.contains(_salesSearchQuery) ||
+          name.contains(_salesSearchQuery) ||
+          phone.contains(_salesSearchQuery);
+
       if (_statusFilter == 'All') {
         return matchesSearch;
       } else {
@@ -445,7 +595,9 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       filteredPaidSum += (data['paidAmount'] as num? ?? 0.0).toDouble();
       filteredDueSum += (data['dueAmount'] as num? ?? 0.0).toDouble();
 
-      final String status = (data['paymentStatus'] ?? '').toString().toLowerCase();
+      final String status = (data['paymentStatus'] ?? '')
+          .toString()
+          .toLowerCase();
       if (status == 'paid') {
         filteredPaidCount++;
       } else {
@@ -459,7 +611,14 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         _buildDateRangeSelectorBar(primaryColor),
 
         // রেসপনসিভ রিপোর্টিং কার্ডসমূহ (মোট ইনভয়েস ও ওষুধ বিক্রির সংখ্যাসহ)
-        _buildStatDashboard(totalSales, totalReceived, totalDue, totalDiscount, totalInvoicesCount, totalMedicineItemsSold),
+        _buildStatDashboard(
+          totalSales,
+          totalReceived,
+          totalDue,
+          totalDiscount,
+          totalInvoicesCount,
+          totalMedicineItemsSold,
+        ),
 
         // সার্চ এবং ফিল্টার সেকশন
         _buildSearchAndFilterControls(primaryColor),
@@ -477,7 +636,12 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         // ইনভয়েসের লাইভ তালিকা
         Expanded(
           child: filteredSales.isEmpty
-              ? const Center(child: Text('No invoice matches your selection.', style: TextStyle(color: Colors.grey)))
+              ? const Center(
+                  child: Text(
+                    'No invoice matches your selection.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: filteredSales.length,
@@ -486,10 +650,15 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     final data = doc.data() as Map<String, dynamic>;
                     final docId = doc.id;
 
+                    final sellerName = data['soldByName'];
+
                     final String invoiceNo = data['invoiceNo'] ?? 'N/A';
-                    final String customer = data['customerName'] ?? 'Walking Customer';
-                    final double total = (data['total'] as num? ?? 0.0).toDouble();
-                    final String paymentStatus = data['paymentStatus'] ?? 'Paid';
+                    final String customer =
+                        data['customerName'] ?? 'Walking Customer';
+                    final double total = (data['total'] as num? ?? 0.0)
+                        .toDouble();
+                    final String paymentStatus =
+                        data['paymentStatus'] ?? 'Paid';
                     final timestamp = data['createdAt'] as Timestamp?;
 
                     return Card(
@@ -503,21 +672,44 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: primaryColor.withOpacity(0.08),
-                          child:  Icon(Icons.receipt, color: primaryColor),
+                          child: Icon(Icons.receipt, color: primaryColor),
                         ),
                         title: Row(
                           children: [
-                            Text(invoiceNo, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              invoiceNo,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(width: 8),
                             _buildPaymentStatusBadge(paymentStatus),
                           ],
                         ),
-                        subtitle: Text('$customer • ${_formatDate(timestamp)}', style: const TextStyle(fontSize: 12)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        subtitle: Text(
+                          '$customer • ${_formatDate(timestamp)}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: Column(
                           children: [
-                            Text('৳${total.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                            const Icon(Icons.chevron_right, color: Colors.grey),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '৳${total.toStringAsFixed(1)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+
+                            Text("Sold by: $sellerName"),
                           ],
                         ),
                         onTap: () => _showInvoiceDetailsDialog(data, docId),
@@ -541,11 +733,11 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           final isSelected = _dateFilter == filter;
           return ChoiceChip(
             label: Text(
-              filter, 
+              filter,
               style: TextStyle(
                 color: isSelected ? Colors.white : Colors.black,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              )
+              ),
             ),
             selected: isSelected,
             selectedColor: primaryColor,
@@ -564,12 +756,12 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   }
 
   Widget _buildStatDashboard(
-    double totalSales, 
-    double totalReceived, 
-    double totalDue, 
+    double totalSales,
+    double totalReceived,
+    double totalDue,
     double totalDiscount,
     int totalInvoicesCount,
-    int totalMedicineItemsSold
+    int totalMedicineItemsSold,
   ) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -584,20 +776,55 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             crossAxisSpacing: 6,
             childAspectRatio: isWide ? 1.8 : 1.3,
             children: [
-              _buildStatCard('Total Sales', '৳${totalSales.toStringAsFixed(0)}', Colors.blue, Icons.monetization_on),
-              _buildStatCard('Cash In Hand', '৳${totalReceived.toStringAsFixed(0)}', Colors.green, Icons.check_circle),
-              _buildStatCard('Total Due', '৳${totalDue.toStringAsFixed(0)}', Colors.red, Icons.hourglass_full),
-              _buildStatCard('Discounts', '৳${totalDiscount.toStringAsFixed(0)}', Colors.purple, Icons.percent),
-              _buildStatCard('Total Memo', '$totalInvoicesCount টি', Colors.indigo, Icons.receipt_long_rounded),
-              _buildStatCard('Sold Qty', '$totalMedicineItemsSold পিস', Colors.orange[800]!, Icons.medication_liquid_sharp),
+              _buildStatCard(
+                'Total Sales',
+                '৳${totalSales.toStringAsFixed(0)}',
+                Colors.blue,
+                Icons.monetization_on,
+              ),
+              _buildStatCard(
+                'Cash In Hand',
+                '৳${totalReceived.toStringAsFixed(0)}',
+                Colors.green,
+                Icons.check_circle,
+              ),
+              _buildStatCard(
+                'Total Due',
+                '৳${totalDue.toStringAsFixed(0)}',
+                Colors.red,
+                Icons.hourglass_full,
+              ),
+              _buildStatCard(
+                'Discounts',
+                '৳${totalDiscount.toStringAsFixed(0)}',
+                Colors.purple,
+                Icons.percent,
+              ),
+              _buildStatCard(
+                'Total Memo',
+                '$totalInvoicesCount টি',
+                Colors.indigo,
+                Icons.receipt_long_rounded,
+              ),
+              _buildStatCard(
+                'Sold Qty',
+                '$totalMedicineItemsSold পিস',
+                Colors.orange[800]!,
+                Icons.medication_liquid_sharp,
+              ),
             ],
           );
-        }
+        },
       ),
     );
   }
 
-  Widget _buildStatCard(String title, String displayValue, Color color, IconData icon) {
+  Widget _buildStatCard(
+    String title,
+    String displayValue,
+    Color color,
+    IconData icon,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -619,14 +846,22 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              title, 
-              style: TextStyle(color: Colors.grey[600], fontSize: 10, fontWeight: FontWeight.bold),
+              title,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 2),
             Text(
               displayValue,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[850]),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[850],
+              ),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
             ),
@@ -649,7 +884,10 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 prefixIcon: Icon(Icons.search, color: primaryColor),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: Colors.grey[300]!),
@@ -716,11 +954,19 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.analytics_rounded, size: 16, color: Color(0xFF005088)),
+              const Icon(
+                Icons.analytics_rounded,
+                size: 16,
+                color: Color(0xFF005088),
+              ),
               const SizedBox(width: 6),
               Text(
                 'ফিল্টার অনুযায়ী ফলাফল: $filteredCount টি মেমো পাওয়া গেছে',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF005088)),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Color(0xFF005088),
+                ),
               ),
             ],
           ),
@@ -728,11 +974,31 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildBannerSubStat('পরিশোধিত', '$paidCount টি', Colors.green[800]!),
-              _buildBannerSubStat('বকেয়া/আংশিক', '$dueCount টি', Colors.red[800]!),
-              _buildBannerSubStat('মোট বিল', '৳${totalBill.toStringAsFixed(1)}', Colors.black),
-              _buildBannerSubStat('মোট আদায়', '৳${totalCash.toStringAsFixed(1)}', Colors.green[700]!),
-              _buildBannerSubStat('মোট বাকি', '৳${totalDue.toStringAsFixed(1)}', Colors.red[700]!),
+              _buildBannerSubStat(
+                'পরিশোধিত',
+                '$paidCount টি',
+                Colors.green[800]!,
+              ),
+              _buildBannerSubStat(
+                'বকেয়া/আংশিক',
+                '$dueCount টি',
+                Colors.red[800]!,
+              ),
+              _buildBannerSubStat(
+                'মোট বিল',
+                '৳${totalBill.toStringAsFixed(1)}',
+                Colors.black,
+              ),
+              _buildBannerSubStat(
+                'মোট আদায়',
+                '৳${totalCash.toStringAsFixed(1)}',
+                Colors.green[700]!,
+              ),
+              _buildBannerSubStat(
+                'মোট বাকি',
+                '৳${totalDue.toStringAsFixed(1)}',
+                Colors.red[700]!,
+              ),
             ],
           ),
         ],
@@ -745,11 +1011,22 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(label, style: TextStyle(fontSize: 9, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 2),
           Text(
-            value, 
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: valueColor),
+            value,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
           ),
@@ -769,12 +1046,20 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       ),
       child: Text(
         status.toUpperCase(),
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 9),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 9,
+        ),
       ),
     );
   }
 
-  Widget _buildDueTrackerTab(List<QueryDocumentSnapshot> docs, double totalDue, Color primaryColor) {
+  Widget _buildDueTrackerTab(
+    List<QueryDocumentSnapshot> docs,
+    double totalDue,
+    Color primaryColor,
+  ) {
     final filteredDues = docs.where((doc) {
       final data = doc.data() as Map<String, dynamic>;
       final double dueAmt = (data['dueAmount'] as num? ?? 0.0).toDouble();
@@ -784,9 +1069,9 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       final name = (data['customerName'] ?? '').toString().toLowerCase();
       final phone = (data['customerPhone'] ?? '').toString().toLowerCase();
 
-      return invNo.contains(_dueSearchQuery) || 
-             name.contains(_dueSearchQuery) || 
-             phone.contains(_dueSearchQuery);
+      return invNo.contains(_dueSearchQuery) ||
+          name.contains(_dueSearchQuery) ||
+          phone.contains(_dueSearchQuery);
     }).toList();
 
     // ফিল্টার হওয়া বাকি টাকার রিয়্যাল-টাইম যোগফল বের করা হচ্ছে
@@ -807,7 +1092,10 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               prefixIcon: const Icon(Icons.search, color: Colors.teal),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(color: Colors.grey[300]!),
@@ -824,7 +1112,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             },
           ),
         ),
-        
+
         Container(
           width: double.infinity,
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -838,12 +1126,20 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'বকেয়া পরিমাণ (ফিল্টারকৃত):', 
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 13)
+                'বকেয়া পরিমাণ (ফিল্টারকৃত):',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                  fontSize: 13,
+                ),
               ),
               Text(
-                '৳${filteredDuesSum.toStringAsFixed(2)}', 
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16)
+                '৳${filteredDuesSum.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
@@ -851,9 +1147,17 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
 
         Expanded(
           child: filteredDues.isEmpty
-              ? const Center(child: Text('No outstanding dues found.', style: TextStyle(color: Colors.grey)))
+              ? const Center(
+                  child: Text(
+                    'No outstanding dues found.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   itemCount: filteredDues.length,
                   itemBuilder: (context, index) {
                     final doc = filteredDues[index];
@@ -861,10 +1165,13 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     final docId = doc.id;
 
                     final String invoiceNo = data['invoiceNo'] ?? 'N/A';
-                    final String customer = data['customerName'] ?? 'Walking Customer';
+                    final String customer =
+                        data['customerName'] ?? 'Walking Customer';
                     final String phone = data['customerPhone'] ?? '';
-                    final double dueAmount = (data['dueAmount'] as num? ?? 0.0).toDouble();
-                    final double total = (data['total'] as num? ?? 0.0).toDouble();
+                    final double dueAmount = (data['dueAmount'] as num? ?? 0.0)
+                        .toDouble();
+                    final double total = (data['total'] as num? ?? 0.0)
+                        .toDouble();
 
                     return Card(
                       color: Colors.white,
@@ -878,20 +1185,46 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                         title: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(customer, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text('৳${dueAmount.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                            Text(
+                              customer,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '৳${dueAmount.toStringAsFixed(1)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
+                            ),
                           ],
                         ),
-                        subtitle: Text('Invoice: $invoiceNo • Total Bill: ৳$total\nPhone: $phone', style: const TextStyle(fontSize: 12)),
+                        subtitle: Text(
+                          'Invoice: $invoiceNo • Total Bill: ৳$total\nPhone: $phone',
+                          style: const TextStyle(fontSize: 12),
+                        ),
                         trailing: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          onPressed: () => _showDueCollectionDialog(data, docId),
-                          child: const Text('Collect', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          onPressed: () =>
+                              _showDueCollectionDialog(data, docId),
+                          child: const Text(
+                            'Collect',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     );

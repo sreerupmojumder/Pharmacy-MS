@@ -1,9 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmacy_app/screens/admin_dashboard_screen.dart';
-// Note: Firebase Auth ইমপ্লিমেন্ট করার জন্য নিচের প্যাকেজটি আপনার pubspec.yaml-এ যোগ করতে হবে:
-// firebase_auth: ^latest_version
-// import 'package:firebase_auth/firebase_auth.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -27,6 +24,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     super.dispose();
   }
 
+  
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
