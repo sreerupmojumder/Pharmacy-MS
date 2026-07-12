@@ -311,7 +311,7 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('medicines')
-                          .where('totalStock', isEqualTo: 0)
+                          .where('totalStock', isLessThan: 15)
                           .snapshots(),
                       builder: (context, snapshot) {
                         int outOfStockCount = 0;
@@ -319,7 +319,7 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
                           outOfStockCount = snapshot.data!.docs.length;
                         }
                         return _buildStripeCard(
-                          title: "Out of Stock",
+                          title: "Below 15 in Stock",
                           value: '$outOfStockCount Items',
                           themeColor: const Color(0xFFC62828), // গাঢ় লাল
                           icon: Icons.warning_amber_rounded,

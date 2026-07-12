@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pharmacy_app/screens/expiry_tracker_screen.dart';
 import 'package:pharmacy_app/screens/medicine_list_screen.dart';
-import 'package:pharmacy_app/screens/new_sale_screen.dart';
-import 'package:pharmacy_app/screens/sales_report_screen.dart';
 import 'package:pharmacy_app/screens/stock_category_screen.dart';
 import 'package:pharmacy_app/screens/user_login_screen.dart';
 
@@ -313,7 +311,7 @@ class _SalesDashboardScreenState extends State<DataEntryDashboardScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('medicines')
-                          .where('totalStock', isEqualTo: 0)
+                          .where('totalStock', isLessThan: 15)
                           .snapshots(),
                       builder: (context, snapshot) {
                         int outOfStockCount = 0;
@@ -321,7 +319,7 @@ class _SalesDashboardScreenState extends State<DataEntryDashboardScreen> {
                           outOfStockCount = snapshot.data!.docs.length;
                         }
                         return _buildStripeCard(
-                          title: "Out of Stock",
+                          title: "Below 15 in Stock",
                           value: '$outOfStockCount Items',
                           themeColor: const Color(0xFFC62828), // গাঢ় লাল
                           icon: Icons.warning_amber_rounded,
