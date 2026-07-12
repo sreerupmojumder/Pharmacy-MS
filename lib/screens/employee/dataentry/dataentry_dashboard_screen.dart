@@ -155,24 +155,6 @@ class _SalesDashboardScreenState extends State<DataEntryDashboardScreen> {
     );
   }
 
-  Future<void> _logout(BuildContext context) async {
-    try {
-      // Firebase থেকে ইউজারকে সাইন আউট করা
-      await FirebaseAuth.instance.signOut();
-
-      // সব আগের রুট (routes) ডিলিট করে লগইন স্ক্রিনে পাঠানো
-      // যাতে ইউজার ব্যাক বাটনে ক্লিক করে আবার ড্যাশবোর্ডে ফিরে আসতে না পারে
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => UserLoginScreen()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error logging out: $e")));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF005088);
@@ -188,7 +170,7 @@ class _SalesDashboardScreenState extends State<DataEntryDashboardScreen> {
           crossAxisAlignment: .start,
           children: [
             Text(
-              'DataEntry Person',
+              'DataEntry',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -215,7 +197,44 @@ class _SalesDashboardScreenState extends State<DataEntryDashboardScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.logout_outlined, color: Colors.white),
-            onPressed: () => _logout(context),
+            onPressed: () async {
+              bool? confirm = await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Confirm Logout"),
+                  content: const Text("Are you sure you want to log out?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false), // Cancel
+                      child: const Text("Cancel"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: () => Navigator.pop(context, true), // Confirm
+                      child: const Text(
+                        "Logout",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              // ২. যদি ইউজার 'Logout' বাটনে ক্লিক করে, তবেই লগআউট প্রক্রিয়া চলবে
+              if (confirm == true) {
+                await FirebaseAuth.instance.signOut();
+
+                // ৩. অ্যাপের রুট ক্লিয়ার করে লগইন স্ক্রিনে পাঠানো (যাতে ব্যাক বাটন চাপলে আবার ড্যাশবোর্ডে না আসা যায়)
+                if (mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserLoginScreen()),
+                  );
+                }
+              }
+            },
             tooltip: 'Logout',
           ),
         ],
@@ -234,9 +253,9 @@ class _SalesDashboardScreenState extends State<DataEntryDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Welcome Back, Data Entry Person!',
+                      'Welcome Back, DataEntry!',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.grey[850],
                       ),

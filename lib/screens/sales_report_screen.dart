@@ -350,13 +350,16 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Enter collection amount';
+                        }
                         final double? amt = double.tryParse(value);
-                        if (amt == null || amt <= 0)
+                        if (amt == null || amt <= 0) {
                           return 'Enter a valid positive amount';
-                        if (amt > outstandingDue)
+                        }
+                        if (amt > outstandingDue) {
                           return 'Cannot collect more than due amount!';
+                        }
                         return null;
                       },
                     ),
@@ -606,134 +609,132 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       }
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // ডাইনামিক ডেট ফিল্টারিং বার (Today, Month, Year, All Time)
-          _buildDateRangeSelectorBar(primaryColor),
+    return Column(
+      children: [
+        // ডাইনামিক ডেট ফিল্টারিং বার (Today, Month, Year, All Time)
+        _buildDateRangeSelectorBar(primaryColor),
 
-          // রেসপনসিভ রিপোর্টিং কার্ডসমূহ (মোট ইনভয়েস ও ওষুধ বিক্রির সংখ্যাসহ)
-          _buildStatDashboard(
-            totalSales,
-            totalReceived,
-            totalDue,
-            totalDiscount,
-            totalInvoicesCount,
-            totalMedicineItemsSold,
-          ),
+        // রেসপনসিভ রিপোর্টিং কার্ডসমূহ (মোট ইনভয়েস ও ওষুধ বিক্রির সংখ্যাসহ)
+        _buildStatDashboard(
+          totalSales,
+          totalReceived,
+          totalDue,
+          totalDiscount,
+          totalInvoicesCount,
+          totalMedicineItemsSold,
+        ),
 
-          // সার্চ এবং ফিল্টার সেকশন
-          _buildSearchAndFilterControls(primaryColor),
+        // সার্চ এবং ফিল্টার সেকশন
+        _buildSearchAndFilterControls(primaryColor),
 
-          // ডাইনামিক ফিল্টার সামারি ব্যানার (যা টাইপ বা ফিল্টার সিলেক্ট করার সাথে সাথে আপডেট হবে)
-          _buildFilteredSummaryBanner(
-            filteredCount: filteredSales.length,
-            paidCount: filteredPaidCount,
-            dueCount: filteredDueOrPartialCount,
-            totalBill: filteredTotalSum,
-            totalCash: filteredPaidSum,
-            totalDue: filteredDueSum,
-          ),
+        // ডাইনামিক ফিল্টার সামারি ব্যানার (যা টাইপ বা ফিল্টার সিলেক্ট করার সাথে সাথে আপডেট হবে)
+        _buildFilteredSummaryBanner(
+          filteredCount: filteredSales.length,
+          paidCount: filteredPaidCount,
+          dueCount: filteredDueOrPartialCount,
+          totalBill: filteredTotalSum,
+          totalCash: filteredPaidSum,
+          totalDue: filteredDueSum,
+        ),
 
-          // ইনভয়েসের লাইভ তালিকা
-          Expanded(
-            child: filteredSales.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No invoice matches your selection.',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: filteredSales.length,
-                    itemBuilder: (context, index) {
-                      final doc = filteredSales[index];
-                      final data = doc.data() as Map<String, dynamic>;
-                      final docId = doc.id;
-
-                      final sellerName = data['soldByName'];
-
-                      final String invoiceNo = data['invoiceNo'] ?? 'N/A';
-                      final String customer =
-                          data['customerName'] ?? 'Walking Customer';
-                      final double total = (data['total'] as num? ?? 0.0)
-                          .toDouble();
-                      final String paymentStatus =
-                          data['paymentStatus'] ?? 'Paid';
-                      final timestamp = data['createdAt'] as Timestamp?;
-
-                      return Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.grey[200]!),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            radius: 0,
-                            backgroundColor: primaryColor.withOpacity(0.08),
-                            child: Icon(Icons.receipt, color: primaryColor),
-                          ),
-                          title: Row(
-                            children: [
-                              Text(
-                                invoiceNo,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              _buildPaymentStatusBadge(paymentStatus),
-                            ],
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: .start,
-                            mainAxisSize: .min,
-                            children: [
-                              Text(
-                                customer,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              Text(
-                                _formatDate(timestamp),
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                            ],
-                          ),
-                          trailing: Column(
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '৳${total.toStringAsFixed(1)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.grey,
-                                  ),
-                                ],
-                              ),
-
-                              Text("Sold by: $sellerName"),
-                            ],
-                          ),
-                          onTap: () => _showInvoiceDetailsDialog(data, docId),
-                        ),
-                      );
-                    },
+        // ইনভয়েসের লাইভ তালিকা
+        Expanded(
+          child: filteredSales.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No invoice matches your selection.',
+                    style: TextStyle(color: Colors.grey),
                   ),
-          ),
-        ],
-      ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: filteredSales.length,
+                  itemBuilder: (context, index) {
+                    final doc = filteredSales[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    final docId = doc.id;
+
+                    final sellerName = data['soldByName'];
+
+                    final String invoiceNo = data['invoiceNo'] ?? 'N/A';
+                    final String customer =
+                        data['customerName'] ?? 'Walking Customer';
+                    final double total = (data['total'] as num? ?? 0.0)
+                        .toDouble();
+                    final String paymentStatus =
+                        data['paymentStatus'] ?? 'Paid';
+                    final timestamp = data['createdAt'] as Timestamp?;
+
+                    return Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.grey[200]!),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          radius: 0,
+                          backgroundColor: primaryColor.withOpacity(0.08),
+                          child: Icon(Icons.receipt, color: primaryColor),
+                        ),
+                        title: Row(
+                          children: [
+                            Text(
+                              invoiceNo,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildPaymentStatusBadge(paymentStatus),
+                          ],
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: .start,
+                          mainAxisSize: .min,
+                          children: [
+                            Text(
+                              customer,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              _formatDate(timestamp),
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                          ],
+                        ),
+                        trailing: Column(
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '৳${total.toStringAsFixed(1)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+
+                            Text("Sold by: $sellerName"),
+                          ],
+                        ),
+                        onTap: () => _showInvoiceDetailsDialog(data, docId),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 

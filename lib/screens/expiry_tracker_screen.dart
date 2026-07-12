@@ -13,7 +13,7 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   String _searchQuery = '';
   String _statusFilter = 'All'; // 'All', 'Expired', 'Expiring Soon'
   DateTime? _customExpiryLimitDate; // কাস্টম তারিখ ফিল্টার করার ভেরিয়েবল
-  
+
   final TextEditingController _searchController = TextEditingController();
   late Stream<QuerySnapshot> _medicinesStream;
 
@@ -21,7 +21,9 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   void initState() {
     super.initState();
     // লাইফ সাইকেলে স্ট্রিমটি একবার সাবস্ক্রাইব করে রাখা হলো যাতে রি-রেন্ডারে কি-বোর্ড ফোকাস নষ্ট না হয়
-    _medicinesStream = FirebaseFirestore.instance.collection('medicines').snapshots();
+    _medicinesStream = FirebaseFirestore.instance
+        .collection('medicines')
+        .snapshots();
   }
 
   @override
@@ -34,7 +36,9 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   String _getExpiryStatus(DateTime expiryDate) {
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);
-    final DateTime expiringSoonLimit = today.add(const Duration(days: 90)); // আগামী ৯০ দিন
+    final DateTime expiringSoonLimit = today.add(
+      const Duration(days: 90),
+    ); // আগামী ৯০ দিন
 
     if (expiryDate.isBefore(today)) {
       return 'Expired';
@@ -49,7 +53,11 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   String _getDaysRemainingText(DateTime expiryDate) {
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);
-    final DateTime expDateOnly = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
+    final DateTime expDateOnly = DateTime(
+      expiryDate.year,
+      expiryDate.month,
+      expiryDate.day,
+    );
     final int difference = expDateOnly.difference(today).inDays;
 
     if (difference < 0) {
@@ -65,7 +73,11 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   Color _getStatusColor(String status, DateTime expiryDate) {
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);
-    final DateTime expDateOnly = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
+    final DateTime expDateOnly = DateTime(
+      expiryDate.year,
+      expiryDate.month,
+      expiryDate.day,
+    );
     final int difference = expDateOnly.difference(today).inDays;
 
     if (difference < 0) {
@@ -79,16 +91,18 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
 
   // মেয়াদ শেষ হয়ে যাওয়া ব্যাচ সম্পূর্ণ ডিসপোজ বা বাদ দেওয়ার লজিক (নিরাপদ ট্রানজেকশন)
   Future<void> _disposeExpiredBatch(
-    BuildContext context, 
-    String docId, 
-    String medicineName, 
-    Map<String, dynamic> targetBatch
+    BuildContext context,
+    String docId,
+    String medicineName,
+    Map<String, dynamic> targetBatch,
   ) async {
     final bool? confirmDispose = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Icon(Icons.delete_forever, color: Colors.red[700], size: 28),
@@ -110,10 +124,15 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[700],
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirm Dispose', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Confirm Dispose',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -130,17 +149,22 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
           if (!docSnapshot.exists) throw Exception('Medicine not found!');
 
           final data = docSnapshot.data() as Map<String, dynamic>;
-          final List<dynamic> dbBatches = List.from(data['batches'] as List<dynamic>? ?? []);
+          final List<dynamic> dbBatches = List.from(
+            data['batches'] as List<dynamic>? ?? [],
+          );
           int totalStock = (data['totalStock'] as num? ?? 0).toInt();
 
           // নির্দিষ্ট ব্যাচটি খুঁজে বের করে স্টক রিডিউস করা হচ্ছে
-          int targetIndex = dbBatches.indexWhere((b) => b['batchNo'] == targetBatch['batchNo']);
+          int targetIndex = dbBatches.indexWhere(
+            (b) => b['batchNo'] == targetBatch['batchNo'],
+          );
           if (targetIndex != -1) {
-            int batchStock = (dbBatches[targetIndex]['stock'] as num? ?? 0).toInt();
-            
+            int batchStock = (dbBatches[targetIndex]['stock'] as num? ?? 0)
+                .toInt();
+
             // ব্যাচটি লিস্ট থেকে সম্পূর্ণ রিমুভ করে দেওয়া হবে
             dbBatches.removeAt(targetIndex);
-            
+
             // মোট স্টক থেকে ওই ব্যাচের পরিমাণ বিয়োগ করা হবে
             totalStock = totalStock - batchStock;
             if (totalStock < 0) totalStock = 0;
@@ -155,7 +179,9 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Batch ${targetBatch['batchNo']} of $medicineName successfully disposed!'),
+              content: Text(
+                'Batch ${targetBatch['batchNo']} of $medicineName successfully disposed!',
+              ),
               backgroundColor: Colors.green,
             ),
           );
@@ -163,7 +189,10 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Disposal failed: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('Disposal failed: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -188,11 +217,16 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
         stream: _medicinesStream,
         builder: (context, snapshot) {
           // রিয়্যাল-টাইম টাইপিংয়ের সময় পেজ ঝাঁকুনি দেওয়া রোধে Smart ConnectionState পরীক্ষা
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator(color: primaryColor));
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            );
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error loading inventory: ${snapshot.error}'));
+            return Center(
+              child: Text('Error loading inventory: ${snapshot.error}'),
+            );
           }
 
           final docs = snapshot.data?.docs ?? [];
@@ -201,7 +235,7 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
           int expiredBatchesCount = 0;
           int expiringSoonBatchesCount = 0;
           double potentialLoss = 0.0;
-          
+
           // ভিউ লিস্টের জন্য ফ্ল্যাট লিস্ট তৈরি করা হচ্ছে যেখানে প্রতিটি আইটেম একটি সিঙ্গেল ব্যাচ দেখাবে
           final List<Map<String, dynamic>> allActiveBatches = [];
 
@@ -211,17 +245,20 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
             final String name = medData['name'] ?? 'N/A';
             final String generic = medData['genericName'] ?? 'N/A';
             final String category = medData['category'] ?? 'N/A';
-            final List<dynamic> batches = medData['batches'] as List<dynamic>? ?? [];
+            final List<dynamic> batches =
+                medData['batches'] as List<dynamic>? ?? [];
 
             for (var b in batches) {
               final batchMap = Map<String, dynamic>.from(b as Map);
-              final Timestamp? expTimestamp = batchMap['expiryDate'] as Timestamp?;
+              final Timestamp? expTimestamp =
+                  batchMap['expiryDate'] as Timestamp?;
               if (expTimestamp == null) continue;
 
               final DateTime expDate = expTimestamp.toDate();
               final String status = _getExpiryStatus(expDate);
               final int stock = (batchMap['stock'] as num? ?? 0).toInt();
-              final double buyingPrice = (batchMap['buyingPrice'] as num? ?? 0.0).toDouble();
+              final double buyingPrice =
+                  (batchMap['buyingPrice'] as num? ?? 0.0).toDouble();
 
               // শুধুমাত্র স্টকে থাকা সক্রিয় ওষুধের মেয়াদ ট্র্যাক হবে
               if (stock > 0) {
@@ -240,7 +277,8 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                   'batchNo': batchMap['batchNo'],
                   'stock': stock,
                   'buyingPrice': buyingPrice,
-                  'sellingPrice': (batchMap['sellingPrice'] as num? ?? 0.0).toDouble(),
+                  'sellingPrice': (batchMap['sellingPrice'] as num? ?? 0.0)
+                      .toDouble(),
                   'expiryDate': expDate,
                   'status': status,
                   'fullMap': batchMap,
@@ -251,15 +289,20 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
 
           // সার্চ, চিপস এবং কাস্টম লিমিট তারিখ অনুযায়ী ব্যাচ ফিল্টার
           final filteredBatches = allActiveBatches.where((item) {
-            final nameMatches = item['name'].toString().toLowerCase().contains(_searchQuery) ||
-                                item['genericName'].toString().toLowerCase().contains(_searchQuery);
-            
+            final nameMatches =
+                item['name'].toString().toLowerCase().contains(_searchQuery) ||
+                item['genericName'].toString().toLowerCase().contains(
+                  _searchQuery,
+                );
+
             // কাস্টম তারিখ ফিল্টারিং (যদি সিলেক্ট করা থাকে)
             bool dateMatches = true;
             if (_customExpiryLimitDate != null) {
               final DateTime expDate = item['expiryDate'] as DateTime;
               // সিলেক্টেড ডেটের সমান বা তার আগের ডেটে এক্সপায়ার হওয়া প্রোডাক্টগুলো
-              dateMatches = expDate.isBefore(_customExpiryLimitDate!.add(const Duration(days: 1)));
+              dateMatches = expDate.isBefore(
+                _customExpiryLimitDate!.add(const Duration(days: 1)),
+              );
             }
 
             bool statusMatches = true;
@@ -277,19 +320,24 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
             final DateTime now = DateTime.now();
             final DateTime today = DateTime(now.year, now.month, now.day);
             if (expDate.isBefore(today)) {
-              customLossSum += (item['buyingPrice'] as double) * (item['stock'] as int);
+              customLossSum +=
+                  (item['buyingPrice'] as double) * (item['stock'] as int);
             }
           }
 
           // মেয়াদ অনুযায়ী সর্টিং (সবচেয়ে আগে Expired এবং Expiring Soon ব্যাচগুলো উপরে দেখাবে)
-          filteredBatches.sort((a, b) => (a['expiryDate'] as DateTime).compareTo(b['expiryDate'] as DateTime));
+          filteredBatches.sort(
+            (a, b) => (a['expiryDate'] as DateTime).compareTo(
+              b['expiryDate'] as DateTime,
+            ),
+          );
 
           return Column(
             children: [
               // ড্যাশবোর্ড প্যানেল
               _buildMetricDashboard(
-                expiredBatchesCount, 
-                expiringSoonBatchesCount, 
+                expiredBatchesCount,
+                expiringSoonBatchesCount,
                 _customExpiryLimitDate != null ? customLossSum : potentialLoss,
                 _customExpiryLimitDate != null,
               ),
@@ -304,16 +352,25 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
               Expanded(
                 child: filteredBatches.isEmpty
                     ? const Center(
-                        child: Text('No batches matches your selection.', style: TextStyle(color: Colors.grey)),
+                        child: Text(
+                          'No batches matches your selection.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         itemCount: filteredBatches.length,
                         itemBuilder: (context, index) {
                           final item = filteredBatches[index];
-                          final DateTime expDate = item['expiryDate'] as DateTime;
-                          final formattedExpDate = DateFormat('dd MMM yyyy').format(expDate);
-                          final color = _getStatusColor(item['status'], expDate);
+                          final DateTime expDate =
+                              item['expiryDate'] as DateTime;
+                          final formattedExpDate = DateFormat(
+                            'dd MMM yyyy',
+                          ).format(expDate);
+                          final color = _getStatusColor(
+                            item['status'],
+                            expDate,
+                          );
                           final daysText = _getDaysRemainingText(expDate);
 
                           return Card(
@@ -337,9 +394,11 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      item['status'] == 'Expired' 
-                                          ? Icons.gpp_bad_rounded 
-                                          : (item['status'] == 'Expiring Soon' ? Icons.warning_amber_rounded : Icons.verified_user_rounded), 
+                                      item['status'] == 'Expired'
+                                          ? Icons.gpp_bad_rounded
+                                          : (item['status'] == 'Expiring Soon'
+                                                ? Icons.warning_amber_rounded
+                                                : Icons.verified_user_rounded),
                                       color: color,
                                     ),
                                   ),
@@ -348,42 +407,68 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                                   // ওষুধ ও ব্যাচ ডিটেইলস
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                item['name'], 
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                item['name'],
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
-                                            _buildStatusBadge(item['status'], color),
+                                            _buildStatusBadge(
+                                              item['status'],
+                                              color,
+                                            ),
                                           ],
                                         ),
-                                        Text('${item['genericName']} • ${item['category']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                        Text(
+                                          '${item['genericName']} • ${item['category']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
                                         const SizedBox(height: 6),
                                         Row(
                                           children: [
                                             Text(
-                                              'Batch: ${item['batchNo']}', 
-                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey),
+                                              'Batch: ${item['batchNo']}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: Colors.blueGrey,
+                                              ),
                                             ),
                                             const SizedBox(width: 12),
                                             Text(
-                                              'Stock: ${item['stock']} pcs', 
-                                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[850], fontSize: 13),
+                                              'Stock: ${item['stock']} pcs',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey[850],
+                                                fontSize: 13,
+                                              ),
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 6),
                                         // ডাইনামিক দিন গণনার সুন্দর টেক্সট
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: color.withOpacity(0.05),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             daysText,
@@ -396,9 +481,9 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Expiry Date: $formattedExpDate', 
+                                          'Expiry Date: $formattedExpDate',
                                           style: TextStyle(
-                                            color: Colors.grey[600], 
+                                            color: Colors.grey[600],
                                             fontWeight: FontWeight.w500,
                                             fontSize: 11,
                                           ),
@@ -410,13 +495,16 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                                   // অ্যাকশন বাটন (মেয়াদোত্তীর্ণ হলে তাৎক্ষণিক বাতিল করার সুবিধা)
                                   if (item['status'] == 'Expired')
                                     IconButton(
-                                      icon: Icon(Icons.delete_sweep, color: Colors.red[700]),
+                                      icon: Icon(
+                                        Icons.delete_sweep,
+                                        color: Colors.red[700],
+                                      ),
                                       tooltip: 'Dispose Expired Stock',
                                       onPressed: () => _disposeExpiredBatch(
-                                        context, 
-                                        item['medicineId'], 
-                                        item['name'], 
-                                        item['fullMap']
+                                        context,
+                                        item['medicineId'],
+                                        item['name'],
+                                        item['fullMap'],
                                       ),
                                     ),
                                 ],
@@ -433,7 +521,12 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
     );
   }
 
-  Widget _buildMetricDashboard(int expiredCount, int expiringSoonCount, double potentialLoss, bool isCustomDateActive) {
+  Widget _buildMetricDashboard(
+    int expiredCount,
+    int expiringSoonCount,
+    double potentialLoss,
+    bool isCustomDateActive,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       child: LayoutBuilder(
@@ -447,22 +540,37 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
             crossAxisSpacing: 8,
             childAspectRatio: isWide ? 2.2 : 1.3,
             children: [
-              _buildMetricCard('Expired', '$expiredCount Batches', Colors.red, Icons.gpp_bad_rounded),
-              _buildMetricCard('Expiring Soon', '$expiringSoonCount Batches', Colors.orange[800]!, Icons.warning_amber_rounded),
               _buildMetricCard(
-                isCustomDateActive ? 'Loss (Filter)' : 'Potential Loss', 
-                '৳${potentialLoss.toStringAsFixed(0)}', 
-                Colors.purple, 
-                Icons.trending_down
+                'Expired',
+                '$expiredCount Batches',
+                Colors.red,
+                Icons.gpp_bad_rounded,
+              ),
+              _buildMetricCard(
+                'Expiring Soon',
+                '$expiringSoonCount Batches',
+                Colors.orange[800]!,
+                Icons.warning_amber_rounded,
+              ),
+              _buildMetricCard(
+                isCustomDateActive ? 'Loss (Filter)' : 'Potential Loss',
+                '৳${potentialLoss.toStringAsFixed(0)}',
+                Colors.purple,
+                Icons.trending_down,
               ),
             ],
           );
-        }
+        },
       ),
     );
   }
 
-  Widget _buildMetricCard(String title, String val, Color color, IconData icon) {
+  Widget _buildMetricCard(
+    String title,
+    String val,
+    Color color,
+    IconData icon,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -472,7 +580,7 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
       color: Colors.white,
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -483,14 +591,22 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              title, 
-              style: TextStyle(color: Colors.grey[600], fontSize: 10, fontWeight: FontWeight.bold),
+              title,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 2),
             Text(
-              val, 
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[850]),
+              val,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[850],
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -500,8 +616,8 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   }
 
   Widget _buildSearchAndFilters(Color primaryColor) {
-    final formattedCustomDate = _customExpiryLimitDate != null 
-        ? DateFormat('dd MMM yyyy').format(_customExpiryLimitDate!) 
+    final formattedCustomDate = _customExpiryLimitDate != null
+        ? DateFormat('dd MMM yyyy').format(_customExpiryLimitDate!)
         : null;
 
     return Padding(
@@ -515,7 +631,10 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
               prefixIcon: Icon(Icons.search, color: primaryColor),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(color: Colors.grey[300]!),
@@ -527,7 +646,9 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
             ),
             onChanged: (val) {
               setState(() {
-                _searchQuery = val.trim().toLowerCase(); // সার্চ কোয়েরি কেস-ইনসেনসিটিভ করা হলো
+                _searchQuery = val
+                    .trim()
+                    .toLowerCase(); // সার্চ কোয়েরি কেস-ইনসেনসিটিভ করা হলো
               });
             },
           ),
@@ -551,17 +672,23 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                     children: [
                       const Text(
                         'তারিখ অনুযায়ী মেয়াদ চেক করুন:',
-                        style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        formattedCustomDate != null 
-                            ? '$formattedCustomDate এর মধ্যে এক্সপায়ার হবে' 
+                        formattedCustomDate != null
+                            ? '$formattedCustomDate এর মধ্যে এক্সপায়ার হবে'
                             : 'যেকোনো কাস্টম তারিখ নির্বাচন করুন...',
                         style: TextStyle(
-                          fontSize: 12, 
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: formattedCustomDate != null ? Colors.teal[800] : Colors.black
+                          color: formattedCustomDate != null
+                              ? Colors.teal[800]
+                              : Colors.black,
                         ),
                       ),
                     ],
@@ -581,15 +708,25 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                   icon: const Icon(Icons.edit_calendar, size: 14),
-                  label: const Text('তারিখ বাছুন', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  label: const Text(
+                    'তারিখ বাছুন',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
                   onPressed: () async {
                     final DateTime? picked = await showDatePicker(
                       context: context,
-                      initialDate: _customExpiryLimitDate ?? DateTime.now().add(const Duration(days: 180)),
+                      initialDate:
+                          _customExpiryLimitDate ??
+                          DateTime.now().add(const Duration(days: 180)),
                       firstDate: DateTime.now(),
                       lastDate: DateTime(2040),
                       builder: (context, child) {
@@ -625,11 +762,13 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
                 final isSelected = _statusFilter == filter;
                 return ChoiceChip(
                   label: Text(
-                    filter, 
+                    filter,
                     style: TextStyle(
                       color: isSelected ? Colors.white : Colors.black,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    )
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   ),
                   selected: isSelected,
                   selectedColor: primaryColor,
@@ -650,7 +789,9 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
 
   Widget _buildFilteredResultBanner(int count) {
     final hasCustomDate = _customExpiryLimitDate != null;
-    final dateString = hasCustomDate ? DateFormat('dd MMM yyyy').format(_customExpiryLimitDate!) : '';
+    final dateString = hasCustomDate
+        ? DateFormat('dd MMM yyyy').format(_customExpiryLimitDate!)
+        : '';
 
     return Container(
       width: double.infinity,
@@ -667,10 +808,14 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              hasCustomDate 
+              hasCustomDate
                   ? 'আজ থেকে $dateString এর মধ্যে $count টি ব্যাচ মেয়াদোত্তীর্ণ হবে।'
                   : 'মেয়াদ অনুযায়ী ফিল্টারে $count টি ব্যাচ পাওয়া গেছে।',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF005088)),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF005088),
+              ),
             ),
           ),
         ],
@@ -688,7 +833,11 @@ class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
       ),
       child: Text(
         status.toUpperCase(),
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 9),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 9,
+        ),
       ),
     );
   }

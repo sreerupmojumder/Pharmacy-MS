@@ -47,6 +47,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color(0xFF005088);
     return Scaffold(
       appBar: AppBar(title: const Text("Create Employee Account")),
       body: Padding(
@@ -177,7 +178,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
                 ),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white, // ব্যাকগ্রাউন্ড কালার
+                  color: primaryColor, // ব্যাকগ্রাউন্ড কালার
                   borderRadius: BorderRadius.circular(12), // রাউন্ডেড কর্নার
                   border: Border.all(
                     color: Colors.grey.shade300,
@@ -197,7 +198,10 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
                       _createEmployee();
                     }
                   },
-                  child: const Text("Create Employee"),
+                  child: const Text(
+                    "Create Employee",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
