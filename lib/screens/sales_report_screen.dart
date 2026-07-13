@@ -287,7 +287,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                   SizedBox(width: 8),
                   Text(
                     'Collect Due (বাকি আদায়)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

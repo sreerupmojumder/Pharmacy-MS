@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:pharmacy_app/screens/admin_login_screen.dart';
+import 'package:pharmacy_app/screens/admin_profile_screen.dart';
 import 'package:pharmacy_app/screens/employee_management_screen.dart';
 
 // পূর্বের স্ক্রিনগুলো ইম্পোর্ট করা হলো
@@ -21,6 +22,7 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  String name = '';
   // আজকের শুরু এবং শেষ সময় নির্ধারণ করার ফাংশন
   DateTime get _startOfToday {
     final now = DateTime.now();
@@ -161,24 +163,100 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF005088);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(4),
-          child: CircleAvatar(
-            backgroundImage: AssetImage('assets/images/sreerup.jpg'),
-          ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // StreamBuilder ফায়ারস্টোরের লাইভ ডেটা ট্র্যাক করবে
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('admins')
+                  .doc(FirebaseAuth.instance.currentUser?.uid)
+                  .snapshots(), // এটি লাইভ কানেকশন তৈরি করে
+              builder: (context, snapshot) {
+                // ১. ডেটা যখন প্রথমবার লোড হচ্ছে
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const DrawerHeader(
+                    decoration: BoxDecoration(color: Colors.green),
+                    child: Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  );
+                }
+
+                // ২. ডেটা সফলভাবে চলে আসলে
+                String adminName = 'Admin'; // ডিফল্ট নাম
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  adminName = data['name'] ?? 'Admin';
+                }
+
+                return DrawerHeader(
+                  decoration: const BoxDecoration(color: Colors.green),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const CircleAvatar(
+                        radius: 40,
+                        child: Icon(Icons.person, size: 40),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        adminName, // প্রোফাইল পেজে নাম চেঞ্জ করলে এটি সাথে সাথে আপডেট হবে
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AdminProfileScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout_outlined),
+              title: const Text('Logout'),
+              onTap: () {},
+            ),
+          ],
         ),
-        title: Text(
-          'Admin',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      appBar: AppBar(
+        leadingWidth: 30,
+
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: AssetImage('assets/images/sreerup.jpg'),
+            ),
+            SizedBox(width: 5),
+            Text(
+              name,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
         ),
         backgroundColor: primaryColor,
         elevation: 1,
@@ -232,6 +310,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16.0),
