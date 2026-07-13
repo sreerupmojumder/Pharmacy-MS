@@ -49,7 +49,10 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF005088);
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Employee Account")),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).primaryColor,
+        title: const Text("Create Employee Account"),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

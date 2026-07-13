@@ -167,38 +167,106 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF005088);
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            // StreamBuilder ফায়ারস্টোরের লাইভ ডেটা ট্র্যাক করবে
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('admins')
-                  .doc(FirebaseAuth.instance.currentUser?.uid)
-                  .snapshots(), // এটি লাইভ কানেকশন তৈরি করে
-              builder: (context, snapshot) {
-                // ১. ডেটা যখন প্রথমবার লোড হচ্ছে
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const DrawerHeader(
-                    decoration: BoxDecoration(color: Colors.green),
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('admins')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        // ১. ডেটা লোড হওয়ার সময় ডিফল্ট নাম
+        String adminName = 'Loading...';
+
+        // ২. ডেটা সফলভাবে চলে আসলে নাম সেট করা
+        if (snapshot.hasData && snapshot.data!.exists) {
+          Map<String, dynamic> data =
+              snapshot.data!.data() as Map<String, dynamic>;
+          adminName = data['name'] ?? 'Admin';
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          appBar: AppBar(
+            leadingWidth: 30,
+
+            title: Row(
+              children: [
+                CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/sreerup.jpg'),
+                ),
+                SizedBox(width: 5),
+                Text(
+                  adminName,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: primaryColor,
+            elevation: 1,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: () => setState(() {}),
+                tooltip: 'Refresh Dashboard',
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout_outlined, color: Colors.white),
+                onPressed: () async {
+                  bool? confirm = await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text("Confirm Logout"),
+                      content: const Text("Are you sure you want to log out?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pop(context, false), // Cancel
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: () =>
+                              Navigator.pop(context, true), // Confirm
+                          child: const Text(
+                            "Logout",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                   );
-                }
 
-                // ২. ডেটা সফলভাবে চলে আসলে
-                String adminName = 'Admin'; // ডিফল্ট নাম
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  Map<String, dynamic> data =
-                      snapshot.data!.data() as Map<String, dynamic>;
-                  adminName = data['name'] ?? 'Admin';
-                }
+                  // ২. যদি ইউজার 'Logout' বাটনে ক্লিক করে, তবেই লগআউট প্রক্রিয়া চলবে
+                  if (confirm == true) {
+                    await FirebaseAuth.instance.signOut();
 
-                return DrawerHeader(
+                    // ৩. অ্যাপের রুট ক্লিয়ার করে লগইন স্ক্রিনে পাঠানো (যাতে ব্যাক বাটন চাপলে আবার ড্যাশবোর্ডে না আসা যায়)
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminLoginScreen(),
+                        ),
+                      );
+                    }
+                  }
+                },
+                tooltip: 'Logout',
+              ),
+            ],
+          ),
+
+          // ড্রয়ার
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
                   decoration: const BoxDecoration(color: Colors.green),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -209,7 +277,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        adminName, // প্রোফাইল পেজে নাম চেঞ্জ করলে এটি সাথে সাথে আপডেট হবে
+                        adminName, // ড্রয়ারেও একই সাথে নাম আপডেট হবে
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -218,338 +286,278 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AdminProfileScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout_outlined),
-              title: const Text('Logout'),
-              onTap: () {},
-            ),
-          ],
-        ),
-      ),
-      appBar: AppBar(
-        leadingWidth: 30,
-
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/images/sreerup.jpg'),
-            ),
-            SizedBox(width: 5),
-            Text(
-              name,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: primaryColor,
-        elevation: 1,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () => setState(() {}),
-            tooltip: 'Refresh Dashboard',
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_outlined, color: Colors.white),
-            onPressed: () async {
-              bool? confirm = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Confirm Logout"),
-                  content: const Text("Are you sure you want to log out?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false), // Cancel
-                      child: const Text("Cancel"),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      onPressed: () => Navigator.pop(context, true), // Confirm
-                      child: const Text(
-                        "Logout",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
                 ),
-              );
-
-              // ২. যদি ইউজার 'Logout' বাটনে ক্লিক করে, তবেই লগআউট প্রক্রিয়া চলবে
-              if (confirm == true) {
-                await FirebaseAuth.instance.signOut();
-
-                // ৩. অ্যাপের রুট ক্লিয়ার করে লগইন স্ক্রিনে পাঠানো (যাতে ব্যাক বাটন চাপলে আবার ড্যাশবোর্ডে না আসা যায়)
-                if (mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => AdminLoginScreen()),
-                  );
-                }
-              }
-            },
-            tooltip: 'Logout',
-          ),
-        ],
-      ),
-
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ১. সম্ভাষণ ও স্বাগতম সেকশন
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome Back, Admin!',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[850],
+                ListTile(
+                  leading: Icon(Icons.person),
+                  title: const Text('Profile'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AdminProfileScreen(),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-                // লোগো ব্যাজ
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.local_pharmacy_rounded,
-                    color: primaryColor,
-                    size: 28,
-                  ),
+                ListTile(
+                  leading: Icon(Icons.logout_outlined),
+                  title: const Text('Logout'),
+                  onTap: () {},
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+          ),
 
-            // ২. রিয়াল-টাইম স্ট্যাটিস্টিক কার্ড প্যানেল (image_d2bb79.png এর আদলে তৈরি)
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 600;
-                return GridView.count(
-                  crossAxisCount: isWide ? 4 : 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: isWide ? 1.9 : 1.95,
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ১. সম্ভাষণ ও স্বাগতম সেকশন
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // ক) Today's Sales স্ট্রাইপ কার্ড (সবুজ)
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('sales')
-                          .where(
-                            'createdAt',
-                            isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              _startOfToday,
-                            ),
-                          )
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        double totalSalesToday = 0.0;
-                        if (snapshot.hasData) {
-                          for (var doc in snapshot.data!.docs) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            totalSalesToday += (data['total'] as num? ?? 0.0)
-                                .toDouble();
-                          }
-                        }
-                        return _buildStripeCard(
-                          title: "Today's Sales",
-                          value:
-                              '৳ ${NumberFormat('#,##0').format(totalSalesToday)}',
-                          themeColor: const Color(0xFF2E7D32), // গাঢ় সবুজ
-                          icon: Icons.attach_money_rounded,
-                        );
-                      },
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome Back, Admin!',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[850],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat(
+                            'EEEE, d MMMM yyyy',
+                          ).format(DateTime.now()),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-
-                    // খ) Out of Stock স্ট্রাইপ কার্ড (লাল)
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('medicines')
-                          .where('totalStock', isLessThan: 15)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        int outOfStockCount = 0;
-                        if (snapshot.hasData) {
-                          outOfStockCount = snapshot.data!.docs.length;
-                        }
-                        return _buildStripeCard(
-                          title: "Below 15",
-                          value: '$outOfStockCount Items',
-                          themeColor: const Color(0xFFC62828), // গাঢ় লাল
-                          icon: Icons.warning_amber_rounded,
-                        );
-                      },
+                    // লোগো ব্যাজ
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.local_pharmacy_rounded,
+                        color: primaryColor,
+                        size: 28,
+                      ),
                     ),
                   ],
-                );
-              },
-            ),
+                ),
+                const SizedBox(height: 20),
 
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Card(
-                    color: Theme.of(context).secondaryHeaderColor,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+                // ২. রিয়াল-টাইম স্ট্যাটিস্টিক কার্ড প্যানেল (image_d2bb79.png এর আদলে তৈরি)
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 600;
+                    return GridView.count(
+                      crossAxisCount: isWide ? 4 : 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: isWide ? 1.9 : 1.95,
+                      children: [
+                        // ক) Today's Sales স্ট্রাইপ কার্ড (সবুজ)
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('sales')
+                              .where(
+                                'createdAt',
+                                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                                  _startOfToday,
+                                ),
+                              )
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            double totalSalesToday = 0.0;
+                            if (snapshot.hasData) {
+                              for (var doc in snapshot.data!.docs) {
+                                final data = doc.data() as Map<String, dynamic>;
+                                totalSalesToday +=
+                                    (data['total'] as num? ?? 0.0).toDouble();
+                              }
+                            }
+                            return _buildStripeCard(
+                              title: "Today's Sales",
+                              value:
+                                  '৳ ${NumberFormat('#,##0').format(totalSalesToday)}',
+                              themeColor: const Color(0xFF2E7D32), // গাঢ় সবুজ
+                              icon: Icons.attach_money_rounded,
+                            );
+                          },
+                        ),
+
+                        // খ) Out of Stock স্ট্রাইপ কার্ড (লাল)
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('medicines')
+                              .where('totalStock', isLessThan: 15)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            int outOfStockCount = 0;
+                            if (snapshot.hasData) {
+                              outOfStockCount = snapshot.data!.docs.length;
+                            }
+                            return _buildStripeCard(
+                              title: "Below 15",
+                              value: '$outOfStockCount Items',
+                              themeColor: const Color(0xFFC62828), // গাঢ় লাল
+                              icon: Icons.warning_amber_rounded,
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Card(
+                        color: Theme.of(context).secondaryHeaderColor,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      EmployeeManagementScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Employee',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
+                    ),
+                  ],
+                ),
+
+                // ৩. প্রধান নেভিগেশন সেকশন টাইটেল
+                Text(
+                  'Quick Control Board',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[850],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // ৪. ফাংশনাল বাটন গ্রিড প্যানেল
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 650;
+                    return GridView.count(
+                      crossAxisCount: isWide ? 6 : 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: isWide ? 1.0 : 0.85,
+                      children: [
+                        _buildMenuButton(
+                          icon: Icons.point_of_sale_rounded,
+                          label: 'POS Counter',
+                          color: primaryColor,
+                          onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => EmployeeManagementScreen(),
+                              builder: (context) => const NewSaleScreen(),
                             ),
-                          );
-                        },
-                        child: Text(
-                          'Employee',
-                          style: TextStyle(fontSize: 14, color: Colors.black),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
+                        _buildMenuButton(
+                          icon: Icons.medication_rounded,
+                          label: 'Inventory',
+                          color: Colors.teal,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MedicineListScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.assessment_rounded,
+                          label: 'Sales & Due',
+                          color: Colors.blueAccent[700]!,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SalesReportScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.notification_important_rounded,
+                          label: 'Stock Alerts',
+                          color: Colors.orange[800]!,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const StockCategoryScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.gpp_maybe_rounded,
+                          label: 'Expiry Alerts',
+                          color: Colors.purple[700]!,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ExpiryTrackerScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.category_rounded,
+                          label: 'Categories',
+                          color: Colors.indigo[800]!,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const CategoryManagementScreen(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
-
-            // ৩. প্রধান নেভিগেশন সেকশন টাইটেল
-            Text(
-              'Quick Control Board',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[850],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ৪. ফাংশনাল বাটন গ্রিড প্যানেল
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 650;
-                return GridView.count(
-                  crossAxisCount: isWide ? 6 : 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: isWide ? 1.0 : 0.85,
-                  children: [
-                    _buildMenuButton(
-                      icon: Icons.point_of_sale_rounded,
-                      label: 'POS Counter',
-                      color: primaryColor,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NewSaleScreen(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuButton(
-                      icon: Icons.medication_rounded,
-                      label: 'Inventory',
-                      color: Colors.teal,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MedicineListScreen(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuButton(
-                      icon: Icons.assessment_rounded,
-                      label: 'Sales & Due',
-                      color: Colors.blueAccent[700]!,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SalesReportScreen(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuButton(
-                      icon: Icons.notification_important_rounded,
-                      label: 'Stock Alerts',
-                      color: Colors.orange[800]!,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const StockCategoryScreen(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuButton(
-                      icon: Icons.gpp_maybe_rounded,
-                      label: 'Expiry Alerts',
-                      color: Colors.purple[700]!,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ExpiryTrackerScreen(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuButton(
-                      icon: Icons.category_rounded,
-                      label: 'Categories',
-                      color: Colors.indigo[800]!,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const CategoryManagementScreen(),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
