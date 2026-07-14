@@ -156,6 +156,28 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
     );
   }
 
+  Future<void> checkAccountStatus() async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('employees')
+        .doc(uid)
+        .get();
+
+    if (!(doc.get('isActive') ?? true)) {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => UserLoginScreen()),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkAccountStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF005088);

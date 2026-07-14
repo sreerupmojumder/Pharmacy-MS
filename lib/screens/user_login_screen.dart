@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pharmacy_app/screens/admin_dashboard_screen.dart';
 import 'package:pharmacy_app/screens/admin_login_screen.dart';
 import 'package:pharmacy_app/screens/employee/dataentry/dataentry_dashboard_screen.dart';
 import 'package:pharmacy_app/screens/employee/manager/manager_dashboard_screen.dart';
@@ -27,19 +26,47 @@ class _LoginScreenState extends State<UserLoginScreen> {
 
     try {
       // ১. Firebase এ অথেনটিকেশন
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
-      // ২. সফল লগইনের পর রোল চেক
-      await _checkUserRole();
+      // ২. Firestore থেকে ইউজারের ডকুমেন্ট চেক করা
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('employees')
+          .doc(userCredential.user!.uid)
+          .get();
+
+      if (userDoc.exists) {
+        bool isActive = userDoc.get('isActive') ?? true; // ডিফল্ট true
+
+        if (isActive) {
+          // সব ঠিক থাকলে রোল চেক করুন
+          await _checkUserRole();
+        } else {
+          // একাউন্ট ইন-অ্যাক্টিভ হলে লগআউট করে দিন এবং মেসেজ দিন
+          await FirebaseAuth.instance.signOut();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Account inactive! Please contact manager."),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
     } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "Authentication Error")),
+      );
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? "Error")));
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Color(0xFF005088)),
         appBarTheme: AppBarTheme(
           iconTheme: IconThemeData(color: Colors.white),
-          titleTextStyle: TextStyle(fontSize: 18),
+          titleTextStyle: TextStyle(fontSize: 18, color: Colors.white),
         ),
       ),
       home: SplashScreen(),

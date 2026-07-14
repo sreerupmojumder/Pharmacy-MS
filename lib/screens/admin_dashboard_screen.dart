@@ -2,9 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:pharmacy_app/screens/employee_management_screen.dart';
 import 'package:pharmacy_app/screens/admin_login_screen.dart';
 import 'package:pharmacy_app/screens/admin_profile_screen.dart';
-import 'package:pharmacy_app/screens/employee_management_screen.dart';
+import 'package:pharmacy_app/screens/create_employee_screen.dart';
 
 // পূর্বের স্ক্রিনগুলো ইম্পোর্ট করা হলো
 import 'new_sale_screen.dart';
@@ -412,7 +413,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               outOfStockCount = snapshot.data!.docs.length;
                             }
                             return _buildStripeCard(
-                              title: "Below 15",
+                              title: "Below 20",
                               value: '$outOfStockCount Items',
                               themeColor: const Color(0xFFC62828), // গাঢ় লাল
                               icon: Icons.warning_amber_rounded,
