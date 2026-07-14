@@ -301,6 +301,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   },
                 ),
                 ListTile(
+                  leading: Icon(Icons.person),
+                  title: const Text('Employees'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EmployeeManagementScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
                   leading: Icon(Icons.logout_outlined),
                   title: const Text('Logout'),
                   onTap: () {},

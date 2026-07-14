@@ -18,7 +18,7 @@ class EmployeeCard extends StatefulWidget {
 }
 
 class _EmployeeCardState extends State<EmployeeCard> {
-  bool isEnabled = false;
+  bool isEnabled = true;
 
   @override
   Widget build(BuildContext context) {
